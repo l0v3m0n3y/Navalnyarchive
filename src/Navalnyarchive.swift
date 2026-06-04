@@ -73,6 +73,30 @@ public class NavalnyArchive {
         let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONSerialization.jsonObject(with: data)
     }
+    
+    public func get_people_list(lang: String = "ru") async throws -> Any {
+        let urlString = "\(api)/\(lang)/people/"
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1)
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data)
+    }
+    
+    public func get_tags_list(lang: String = "ru") async throws -> Any {
+        let urlString = "\(api)/\(lang)/tags/"
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1)
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data)
+    }
 
     public func get_materials_list(lang: String = "ru", page_size: Int) async throws -> Any {
         let urlString = "\(api)/\(lang)/materials/?page_size=\(page_size)"
