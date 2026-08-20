@@ -22,7 +22,8 @@ extension URLSession {
 
 public class NavalnyArchive {
     private let api = "https://api-archive.navalny.com/api/v1"
-    private let donate_api = "https://navalny.com/en/api"
+    private let donateApi = "https://navalny.com/en/api"
+    private let wikiApi = "https://novichok.navalny.wiki/_next/data"
     private var headers: [String: String]
     
     public init() {
@@ -34,9 +35,9 @@ public class NavalnyArchive {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
         ]
     }
-    public func get_donate_wallet(type: String) async throws -> Any {
+    public func getDonateWallet(type: String) async throws -> Any {
         // type_list: ["bitcoin-address","monero-address"]
-        guard let url = URL(string: "\(donate_api)/\(type)") else {
+        guard let url = URL(string: "\(donateApi)/\(type)") else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
     
@@ -50,7 +51,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
     
-    public func get_editorials_list(lang: String = "ru", limit: Int) async throws -> Any {
+    public func getEditorialsList(lang: String = "ru", limit: Int) async throws -> Any {
         let urlString = "\(api)/\(lang)/editorials/?limit=\(limit)"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
@@ -62,7 +63,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_daily_posts_today(lang: String = "ru") async throws -> Any {
+    public func getDailyPostsToday(lang: String = "ru") async throws -> Any {
         let urlString = "\(api)/\(lang)/daily-posts/today/"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
@@ -74,7 +75,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
     
-    public func get_people_list(lang: String = "ru") async throws -> Any {
+    public func getPeopleList(lang: String = "ru") async throws -> Any {
         let urlString = "\(api)/\(lang)/people/"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
@@ -86,7 +87,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
     
-    public func get_tags_list(lang: String = "ru") async throws -> Any {
+    public func getTagsList(lang: String = "ru") async throws -> Any {
         let urlString = "\(api)/\(lang)/tags/"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
@@ -98,8 +99,8 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_materials_list(lang: String = "ru", page_size: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/?page_size=\(page_size)"
+    public func getMaterialsList(lang: String = "ru", pageSize: Int) async throws -> Any {
+        let urlString = "\(api)/\(lang)/materials/?page_size=\(pageSize)"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
@@ -110,7 +111,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_home_content(lang: String = "ru") async throws -> Any {
+    public func getHomeContent(lang: String = "ru") async throws -> Any {
         let urlString = "\(api)/\(lang)/home-content/"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
@@ -122,7 +123,7 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_materials_statistics(formats: String? = nil, types: String? = nil) async throws -> Any {
+    public func getMaterialsStatistics(formats: String? = nil, types: String? = nil) async throws -> Any {
         guard var components = URLComponents(string: "\(api)/materials/statistics/") else {
             throw URLError(.badURL)
         }
@@ -146,8 +147,8 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_related_material_by_id(lang: String = "ru", material_id: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/\(material_id)/related/"
+    public func getRelatedMaterialById(lang: String = "ru", materialId: Int) async throws -> Any {
+        let urlString = "\(api)/\(lang)/materials/\(materialId)/related/"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
@@ -158,8 +159,20 @@ public class NavalnyArchive {
         return try JSONSerialization.jsonObject(with: data)
     }
 
-    public func get_material_by_id(lang: String = "ru", material_id: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/\(material_id)"
+    public func getMaterialById(lang: String = "ru", materialId: Int) async throws -> Any {
+        let urlString = "\(api)/\(lang)/materials/\(materialId)"
+        guard let url = URL(string: urlString) else {
+            throw NSError(domain: "Invalid URL", code: -1)
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        request.allHTTPHeaderFields = headers
+        let (data, _) = try await URLSession.shared.data(for: request)
+        return try JSONSerialization.jsonObject(with: data)
+    }
+
+    public func getWikiPage(name: String,bildId: String = "K8H6W351Ekktz1chHY1vH",lang: String = "ru") async throws -> Any {
+        let urlString = "\(wikiApi)/\(bildId)/\(lang)/\(name).json"
         guard let url = URL(string: urlString) else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
