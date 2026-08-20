@@ -7,8 +7,8 @@ import Navalnyarchive
 let client = NavalnyArchive()
 
 do {
-    let daily_posts = try await client.get_daily_posts_today()
-    print(daily_posts)
+    let dailyPosts = try await client.getDailyPostsToday()
+    print(dailyPosts)
 } catch {
     print("Error: \(error)")
 }
