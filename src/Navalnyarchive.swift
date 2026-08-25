@@ -20,6 +20,14 @@ extension URLSession {
     }
 }
 
+public enum HTTPMethod: String {
+    case get = "GET"
+    case post = "POST"
+    case put = "PUT"
+    case delete = "DELETE"
+    case patch = "PATCH"
+}
+
 public class NavalnyArchive {
     private let api = "https://api-archive.navalny.com/api/v1"
     private let donateApi = "https://navalny.com/en/api"
