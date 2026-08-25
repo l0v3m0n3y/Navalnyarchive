@@ -35,151 +35,79 @@ public class NavalnyArchive {
             "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
         ]
     }
-    public func getDonateWallet(type: String) async throws -> Any {
-        // type_list: ["bitcoin-address","monero-address"]
-        guard let url = URL(string: "\(donateApi)/\(type)") else {
+    
+    private func fetchJSON(from urlString: String,method: HTTPMethod = .get,body: Data? = nil,queryParameters: [String: String]? = nil) async throws -> Any {
+        var urlComponents = URLComponents(string: urlString)
+        if let queryParameters = queryParameters {
+            urlComponents?.queryItems = queryParameters.map { URLQueryItem(name: $0.key, value: $0.value) }
+        }
+        guard let url = urlComponents?.url else {
             throw NSError(domain: "Invalid URL", code: -1)
         }
-    
         var request = URLRequest(url: url)
-        request.httpMethod = "POST"
+        request.httpMethod = method.rawValue
         request.allHTTPHeaderFields = headers
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try? JSONSerialization.data(withJSONObject: [:], options: [])
-    
+        if let body = body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
         let (data, _) = try await URLSession.shared.data(for: request)
         return try JSONSerialization.jsonObject(with: data)
+    }
+    
+    public func getDonateWallet(type: String) async throws -> Any {
+        // type_list: ["bitcoin-address","monero-address"]
+        return try await fetchJSON(from: "\(donateApi)/\(type)")
     }
     
     public func getEditorialsList(lang: String = "ru", limit: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/editorials/?limit=\(limit)"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/editorials/?limit=\(limit)")
     }
 
     public func getDailyPostsToday(lang: String = "ru") async throws -> Any {
-        let urlString = "\(api)/\(lang)/daily-posts/today/"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/daily-posts/today/")
     }
     
     public func getPeopleList(lang: String = "ru") async throws -> Any {
-        let urlString = "\(api)/\(lang)/people/"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/people/")
     }
     
     public func getTagsList(lang: String = "ru") async throws -> Any {
-        let urlString = "\(api)/\(lang)/tags/"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/tags/")
     }
 
     public func getMaterialsList(lang: String = "ru", pageSize: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/?page_size=\(pageSize)"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: \(api)/\(lang)/materials/?page_size=\(pageSize)")
     }
 
     public func getHomeContent(lang: String = "ru") async throws -> Any {
-        let urlString = "\(api)/\(lang)/home-content/"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/home-content/")
     }
 
     public func getMaterialsStatistics(formats: String? = nil, types: String? = nil) async throws -> Any {
         guard var components = URLComponents(string: "\(api)/materials/statistics/") else {
             throw URLError(.badURL)
         }
-        var queryItems: [URLQueryItem] = []
+        var queryParameters: [String: String] = [:]
         if let formats = formats {
-            queryItems.append(URLQueryItem(name: "formats", value: formats))
+            queryParameters["formats"] = formats
         }
         if let types = types {
-            queryItems.append(URLQueryItem(name: "types", value: types))
+             queryParameters["types"] = types
         }
-        if !queryItems.isEmpty {
-            components.queryItems = queryItems
-        }
-        guard let url = components.url else {
-            throw URLError(.badURL)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        
+        return try await fetchJSON(from: urlString,queryParameters: queryParameters.isEmpty ? nil : queryParameters)
     }
 
     public func getRelatedMaterialById(lang: String = "ru", materialId: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/\(materialId)/related/"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/materials/\(materialId)/related/")
     }
 
     public func getMaterialById(lang: String = "ru", materialId: Int) async throws -> Any {
-        let urlString = "\(api)/\(lang)/materials/\(materialId)"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(api)/\(lang)/materials/\(materialId)")
     }
 
     public func getWikiPage(name: String,bildId: String = "K8H6W351Ekktz1chHY1vH",lang: String = "ru") async throws -> Any {
-        let urlString = "\(wikiApi)/\(bildId)/\(lang)/\(name).json"
-        guard let url = URL(string: urlString) else {
-            throw NSError(domain: "Invalid URL", code: -1)
-        }
-        var request = URLRequest(url: url)
-        request.httpMethod = "GET"
-        request.allHTTPHeaderFields = headers
-        let (data, _) = try await URLSession.shared.data(for: request)
-        return try JSONSerialization.jsonObject(with: data)
+        return try await fetchJSON(from: "\(wikiApi)/\(bildId)/\(lang)/\(name).json")
     }
 }
